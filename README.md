@@ -27,7 +27,7 @@ class KeyedArray<K, T> {
   readonly immutable: boolean;
 
   // Fires when array has changed in immutable mode.
-  onArrayChanged: () => void;
+  onArrayChanged: (changed: number) => void;
 
   // Gets the number of elements in this container.
   get count(): number;
@@ -45,7 +45,13 @@ class KeyedArray<K, T> {
   insert(index: number, ...items: T[]): number;
 
   // Removes an item at the given index.
-  remove(index: number): void;
+  deleteByIndex(index: number): void;
+
+  // Removes the item associated with the given key.
+  deleteByKey(key: K): void;
+
+  // Replaces the item associated with the given key with another item.
+  updateByKey(key: K, newItem: T);
 
   // Returns if the internal map contains the given key.
   containsKey(key: K): boolean;
