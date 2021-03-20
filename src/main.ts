@@ -1,4 +1,10 @@
-import { arrayInsertAt, arrayRemoveAt, pureArrayInsertAt, pureArrayRemoveAt } from 'f-array.splice';
+import {
+  arrayInsertAt,
+  arrayRemoveAt,
+  pureArrayInsertAt,
+  pureArrayRemoveAt,
+  pureArraySet,
+} from 'f-array.splice';
 
 export default class KeyedArray<K, T> {
   #array: T[] = [];
@@ -64,6 +70,23 @@ export default class KeyedArray<K, T> {
       return;
     }
     this.deleteInternal(key, index);
+  }
+
+  updateByKey(key: K, newItem: T) {
+    const item = this.#map.get(key);
+    if (!item) {
+      return;
+    }
+    const index = this.#array.indexOf(item);
+    if (index < 0) {
+      return;
+    }
+    this.#map.set(key, newItem);
+    if (this.immutable) {
+      this.#array = pureArraySet(this.#array, index, newItem);
+    } else {
+      this.#array[index] = newItem;
+    }
   }
 
   private deleteInternal(key: K, index: number) {

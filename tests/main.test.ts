@@ -71,6 +71,17 @@ it('Immutable', () => {
     ka.map,
     new Map<number, Item>([[-1, { id: -1, name: '-1' }]]),
   );
+
+  // Update by key
+  before = ka.array;
+  ka.updateByKey(-1, { id: -1, name: '-1 updated' });
+  after = ka.array;
+  assert.ok(before !== after);
+  assert.deepStrictEqual(ka.array, [{ id: -1, name: '-1 updated' }]);
+  assert.deepStrictEqual(
+    ka.map,
+    new Map<number, Item>([[-1, { id: -1, name: '-1 updated' }]]),
+  );
 });
 
 it('Mutable', () => {
@@ -131,6 +142,17 @@ it('Mutable', () => {
   assert.deepStrictEqual(
     ka.map,
     new Map<number, Item>([[-1, { id: -1, name: '-1' }]]),
+  );
+
+  // Update by key
+  before = ka.array;
+  ka.updateByKey(-1, { id: -1, name: '-1 updated' });
+  after = ka.array;
+  assert.ok(before === after);
+  assert.deepStrictEqual(ka.array, [{ id: -1, name: '-1 updated' }]);
+  assert.deepStrictEqual(
+    ka.map,
+    new Map<number, Item>([[-1, { id: -1, name: '-1 updated' }]]),
   );
 });
 
