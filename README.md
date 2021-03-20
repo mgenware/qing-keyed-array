@@ -26,6 +26,9 @@ class KeyedArray<K, T> {
   // Whether the internal array is immutable.
   readonly immutable: boolean;
 
+  // Fires when array has changed in immutable mode.
+  onArrayChanged: () => void;
+
   // Gets the number of elements in this container.
   get count(): number;
 

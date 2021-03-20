@@ -111,3 +111,22 @@ it('Mutable', () => {
     ]),
   );
 });
+
+it('onArrayChanged', () => {
+  const ka = getKA(true);
+
+  let counter = 0;
+  ka.onArrayChanged = () => counter++;
+
+  // Push
+  ka.push({ id: -1, name: '-1' }, { id: 1, name: '1' });
+  assert.strictEqual(counter, 1);
+
+  // Remove
+  ka.remove(0);
+  assert.strictEqual(counter, 2);
+
+  // Insert
+  ka.insert(1, { id: 2, name: '2' });
+  assert.strictEqual(counter, 3);
+});

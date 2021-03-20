@@ -5,6 +5,8 @@ export default class KeyedArray<K, T> {
   #map = new Map<K, T>();
   #keyFn: (item: T) => K;
 
+  onArrayChanged: () => void = () => {};
+
   get count(): number {
     return this.#array.length;
   }
@@ -25,6 +27,7 @@ export default class KeyedArray<K, T> {
     const filtered = this.addItemsToMap(items);
     if (this.immutable) {
       this.#array = [...this.#array, ...filtered];
+      this.onArrayChanged();
     } else {
       this.#array.push(...filtered);
     }
@@ -35,6 +38,7 @@ export default class KeyedArray<K, T> {
     const filtered = this.addItemsToMap(items);
     if (this.immutable) {
       this.#array = pureArrayInsertAt(this.#array, index, ...items);
+      this.onArrayChanged();
     } else {
       arrayInsertAt(this.#array, index, ...items);
     }
@@ -50,6 +54,7 @@ export default class KeyedArray<K, T> {
     this.#map.delete(key);
     if (this.immutable) {
       this.#array = pureArrayRemoveAt(this.#array, index);
+      this.onArrayChanged();
     } else {
       arrayRemoveAt(this.#array, index);
     }
