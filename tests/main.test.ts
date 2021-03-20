@@ -16,11 +16,15 @@ it('Immutable', () => {
   const ka = getKA(true);
   assert.strictEqual(ka.immutable, true);
 
+  let changed = 0;
+  ka.onArrayChanged = (c) => (changed = c);
+
   // Push
   let before = ka.array;
   ka.push({ id: -1, name: '-1' }, { id: 1, name: '1' });
   let after = ka.array;
   assert.ok(before !== after);
+  assert.strictEqual(changed, 1);
   assert.deepStrictEqual(ka.array, [
     { id: 1, name: '1' },
     { id: -1, name: '-1' },
@@ -38,6 +42,7 @@ it('Immutable', () => {
   ka.deleteByIndex(0);
   after = ka.array;
   assert.ok(before !== after);
+  assert.strictEqual(changed, -1);
   assert.deepStrictEqual(ka.array, [{ id: -1, name: '-1' }]);
   assert.deepStrictEqual(
     ka.map,
@@ -46,9 +51,10 @@ it('Immutable', () => {
 
   // Insert
   before = ka.array;
-  ka.insert(1, { id: 2, name: '2' });
+  ka.insert(1, { id: 2, name: '2' }, { id: -1, name: '-1' });
   after = ka.array;
   assert.ok(before !== after);
+  assert.strictEqual(changed, 1);
   assert.deepStrictEqual(ka.array, [
     { id: -1, name: '-1' },
     { id: 2, name: '2' },
@@ -66,6 +72,7 @@ it('Immutable', () => {
   ka.deleteByKey(2);
   after = ka.array;
   assert.ok(before !== after);
+  assert.strictEqual(changed, -1);
   assert.deepStrictEqual(ka.array, [{ id: -1, name: '-1' }]);
   assert.deepStrictEqual(
     ka.map,
@@ -77,6 +84,7 @@ it('Immutable', () => {
   ka.updateByKey(-1, { id: -1, name: '-1 updated' });
   after = ka.array;
   assert.ok(before !== after);
+  assert.strictEqual(changed, 0);
   assert.deepStrictEqual(ka.array, [{ id: -1, name: '-1 updated' }]);
   assert.deepStrictEqual(
     ka.map,
@@ -118,7 +126,7 @@ it('Mutable', () => {
 
   // Insert
   before = ka.array;
-  ka.insert(1, { id: 2, name: '2' });
+  ka.insert(1, { id: 2, name: '2' }, { id: -1, name: '-1' });
   after = ka.array;
   assert.ok(before === after);
   assert.deepStrictEqual(ka.array, [

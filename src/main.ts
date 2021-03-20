@@ -11,7 +11,7 @@ export default class KeyedArray<K, T> {
   #map = new Map<K, T>();
   #keyFn: (item: T) => K;
 
-  onArrayChanged: () => void = () => {};
+  onArrayChanged: (changed: number) => void = () => {};
 
   get count(): number {
     return this.#array.length;
@@ -33,7 +33,7 @@ export default class KeyedArray<K, T> {
     const filtered = this.addItemsToMap(items);
     if (this.immutable) {
       this.#array = [...this.#array, ...filtered];
-      this.onArrayChanged();
+      this.onArrayChanged(filtered.length);
     } else {
       this.#array.push(...filtered);
     }
@@ -43,10 +43,10 @@ export default class KeyedArray<K, T> {
   insert(index: number, ...items: T[]): number {
     const filtered = this.addItemsToMap(items);
     if (this.immutable) {
-      this.#array = pureArrayInsertAt(this.#array, index, ...items);
-      this.onArrayChanged();
+      this.#array = pureArrayInsertAt(this.#array, index, ...filtered);
+      this.onArrayChanged(filtered.length);
     } else {
-      arrayInsertAt(this.#array, index, ...items);
+      arrayInsertAt(this.#array, index, ...filtered);
     }
     return filtered.length;
   }
@@ -84,6 +84,7 @@ export default class KeyedArray<K, T> {
     this.#map.set(key, newItem);
     if (this.immutable) {
       this.#array = pureArraySet(this.#array, index, newItem);
+      this.onArrayChanged(0);
     } else {
       this.#array[index] = newItem;
     }
@@ -93,7 +94,7 @@ export default class KeyedArray<K, T> {
     this.#map.delete(key);
     if (this.immutable) {
       this.#array = pureArrayRemoveAt(this.#array, index);
-      this.onArrayChanged();
+      this.onArrayChanged(-1);
     } else {
       arrayRemoveAt(this.#array, index);
     }
