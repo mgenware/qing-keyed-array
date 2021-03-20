@@ -45,12 +45,28 @@ export default class KeyedArray<K, T> {
     return filtered.length;
   }
 
-  remove(index: number) {
+  deleteByIndex(index: number) {
     const item = this.#array[index];
     if (!item) {
       return;
     }
     const key = this.#keyFn(item);
+    this.deleteInternal(key, index);
+  }
+
+  deleteByKey(key: K) {
+    const item = this.#map.get(key);
+    if (!item) {
+      return;
+    }
+    const index = this.#array.indexOf(item);
+    if (index < 0) {
+      return;
+    }
+    this.deleteInternal(key, index);
+  }
+
+  private deleteInternal(key: K, index: number) {
     this.#map.delete(key);
     if (this.immutable) {
       this.#array = pureArrayRemoveAt(this.#array, index);

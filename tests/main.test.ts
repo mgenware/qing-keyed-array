@@ -33,9 +33,9 @@ it('Immutable', () => {
     ]),
   );
 
-  // Remove
+  // Delete by index
   before = ka.array;
-  ka.remove(0);
+  ka.deleteByIndex(0);
   after = ka.array;
   assert.ok(before !== after);
   assert.deepStrictEqual(ka.array, [{ id: -1, name: '-1' }]);
@@ -59,6 +59,17 @@ it('Immutable', () => {
       [-1, { id: -1, name: '-1' }],
       [2, { id: 2, name: '2' }],
     ]),
+  );
+
+  // Delete by key
+  before = ka.array;
+  ka.deleteByKey(2);
+  after = ka.array;
+  assert.ok(before !== after);
+  assert.deepStrictEqual(ka.array, [{ id: -1, name: '-1' }]);
+  assert.deepStrictEqual(
+    ka.map,
+    new Map<number, Item>([[-1, { id: -1, name: '-1' }]]),
   );
 });
 
@@ -83,9 +94,9 @@ it('Mutable', () => {
     ]),
   );
 
-  // Remove
+  // Delete by index
   before = ka.array;
-  ka.remove(0);
+  ka.deleteByIndex(0);
   after = ka.array;
   assert.ok(before === after);
   assert.deepStrictEqual(ka.array, [{ id: -1, name: '-1' }]);
@@ -110,6 +121,17 @@ it('Mutable', () => {
       [2, { id: 2, name: '2' }],
     ]),
   );
+
+  // Delete by key
+  before = ka.array;
+  ka.deleteByKey(2);
+  after = ka.array;
+  assert.ok(before === after);
+  assert.deepStrictEqual(ka.array, [{ id: -1, name: '-1' }]);
+  assert.deepStrictEqual(
+    ka.map,
+    new Map<number, Item>([[-1, { id: -1, name: '-1' }]]),
+  );
 });
 
 it('onArrayChanged', () => {
@@ -123,7 +145,7 @@ it('onArrayChanged', () => {
   assert.strictEqual(counter, 1);
 
   // Remove
-  ka.remove(0);
+  ka.deleteByIndex(0);
   assert.strictEqual(counter, 2);
 
   // Insert
