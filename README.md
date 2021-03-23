@@ -17,6 +17,18 @@ yarn add qing-keyed-array
 ```ts
 import KeyedArray from 'qing-keyed-array';
 
+// Event info for `onArrayChanged`.
+export interface ArrayChangedEvent<K> {
+  // Number of changed keys.
+  numberOfChanges: number;
+  // Updated keys.
+  updated?: K[];
+  // Added keys.
+  added?: K[];
+  // Removed keys.
+  removed?: K[];
+}
+
 class KeyedArray<K, T> {
   // Creates an instance of `KeyedArray`.
   // `immutable` if `this.array` will be changed in a immutable way.
@@ -26,8 +38,8 @@ class KeyedArray<K, T> {
   // Whether the internal array is immutable.
   readonly immutable: boolean;
 
-  // Fires when array has changed in immutable mode.
-  onArrayChanged: (changed: number) => void;
+  // Fires when the internal array changes in immutable mode.
+  onArrayChanged: (sender: this, e: ArrayChangedEvent<K>) => void;
 
   // Gets the number of elements in this container.
   get count(): number;

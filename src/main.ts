@@ -6,12 +6,25 @@ import {
   pureArraySet,
 } from 'f-array.splice';
 
+// Event info for `onArrayChanged`.
+export interface ArrayChangedEvent<K> {
+  // Number of changed keys.
+  numberOfChanges: number;
+  // Updated keys.
+  updated?: K[];
+  // Added keys.
+  added?: K[];
+  // Removed keys.
+  removed?: K[];
+}
+
 export default class KeyedArray<K, T> {
   #array: T[] = [];
   #map = new Map<K, T>();
   #keyFn: (item: T) => K;
 
-  onArrayChanged: (changed: number) => void = () => {};
+  // Fires when the internal array changes, immutable mode only.
+  onArrayChanged: (sender: this, e: ArrayChangedEvent<K>) => void = () => {};
 
   get count(): number {
     return this.#array.length;
@@ -33,7 +46,10 @@ export default class KeyedArray<K, T> {
     const filtered = this.addItemsToMap(items);
     if (this.immutable) {
       this.#array = [...this.#array, ...filtered];
-      this.onArrayChanged(filtered.length);
+      this.onArrayChanged(this, {
+        numberOfChanges: filtered.length,
+        added: filtered.map((it) => this.#keyFn(it)),
+      });
     } else {
       this.#array.push(...filtered);
     }
@@ -44,7 +60,10 @@ export default class KeyedArray<K, T> {
     const filtered = this.addItemsToMap(items);
     if (this.immutable) {
       this.#array = pureArrayInsertAt(this.#array, index, ...filtered);
-      this.onArrayChanged(filtered.length);
+      this.onArrayChanged(this, {
+        numberOfChanges: filtered.length,
+        added: filtered.map((it) => this.#keyFn(it)),
+      });
     } else {
       arrayInsertAt(this.#array, index, ...filtered);
     }
@@ -84,7 +103,7 @@ export default class KeyedArray<K, T> {
     this.#map.set(key, newItem);
     if (this.immutable) {
       this.#array = pureArraySet(this.#array, index, newItem);
-      this.onArrayChanged(0);
+      this.onArrayChanged(this, { numberOfChanges: 0, updated: [key] });
     } else {
       this.#array[index] = newItem;
     }
@@ -94,7 +113,7 @@ export default class KeyedArray<K, T> {
     this.#map.delete(key);
     if (this.immutable) {
       this.#array = pureArrayRemoveAt(this.#array, index);
-      this.onArrayChanged(-1);
+      this.onArrayChanged(this, { numberOfChanges: -1, removed: [key] });
     } else {
       arrayRemoveAt(this.#array, index);
     }
