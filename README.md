@@ -62,8 +62,8 @@ class KeyedArray<K, T> {
   // Removes the item associated with the given key.
   deleteByKey(key: K): void;
 
-  // Replaces the item associated with the given key with another item.
-  updateByKey(key: K, newItem: T);
+  // Replaces the item associated with the given item key with the new item.
+  update(newItem: T);
 
   // Returns if the internal map contains the given key.
   containsKey(key: K): boolean;

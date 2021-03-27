@@ -82,7 +82,7 @@ it('Immutable', () => {
 
   // Update by key
   before = ka.array;
-  ka.updateByKey(-1, { id: -1, name: '-1 updated' });
+  ka.update({ id: -1, name: '-1 updated' });
   after = ka.array;
   assert.ok(before !== after);
   assert.deepStrictEqual(e, { numberOfChanges: 0, updated: [-1] });
@@ -155,7 +155,7 @@ it('Mutable', () => {
 
   // Update by key
   before = ka.array;
-  ka.updateByKey(-1, { id: -1, name: '-1 updated' });
+  ka.update({ id: -1, name: '-1 updated' });
   after = ka.array;
   assert.ok(before === after);
   assert.deepStrictEqual(ka.array, [{ id: -1, name: '-1 updated' }]);

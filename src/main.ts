@@ -91,7 +91,8 @@ export default class KeyedArray<K, T> {
     this.deleteInternal(key, index);
   }
 
-  updateByKey(key: K, newItem: T) {
+  update(newItem: T) {
+    const key = this.#keyFn(newItem);
     const item = this.#map.get(key);
     if (!item) {
       return;
