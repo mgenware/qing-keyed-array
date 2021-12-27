@@ -1,6 +1,6 @@
 {
   "name": "qing-keyed-array",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "TypeScript array + map",
   "type": "module",
   "exports": "./dist/main.js",
