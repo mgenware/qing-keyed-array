@@ -24,6 +24,7 @@ export default class KeyedArray<K, T> {
   #keyFn: (item: T) => K;
 
   // Fires when the internal array changes, immutable mode only.
+  // eslint-disable-next-line class-methods-use-this
   onArrayChanged: (sender: this, e: ArrayChangedEvent<K>) => void = () => {};
 
   get count(): number {
