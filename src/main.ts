@@ -60,7 +60,7 @@ export default class KeyedArray<K, T> {
   insert(index: number, ...items: T[]): number {
     const filtered = this.addItemsToMap(items);
     if (this.immutable) {
-      this.#array = pureArrayInsertAt(this.#array, index, ...filtered);
+      this.#array = pureArrayInsertAt(this.#array, index, ...filtered) as T[];
       this.onArrayChanged(this, {
         numberOfChanges: filtered.length,
         added: filtered.map((it) => this.#keyFn(it)),
@@ -104,7 +104,7 @@ export default class KeyedArray<K, T> {
     }
     this.#map.set(key, newItem);
     if (this.immutable) {
-      this.#array = pureArraySet(this.#array, index, newItem);
+      this.#array = pureArraySet(this.#array, index, newItem) as T[];
       this.onArrayChanged(this, { numberOfChanges: 0, updated: [key] });
     } else {
       this.#array[index] = newItem;
@@ -114,7 +114,7 @@ export default class KeyedArray<K, T> {
   private deleteInternal(key: K, index: number) {
     this.#map.delete(key);
     if (this.immutable) {
-      this.#array = pureArrayRemoveAt(this.#array, index);
+      this.#array = pureArrayRemoveAt(this.#array, index) as T[];
       this.onArrayChanged(this, { numberOfChanges: -1, removed: [key] });
     } else {
       arrayRemoveAt(this.#array, index);
