@@ -4,12 +4,12 @@
 [![npm version](https://img.shields.io/npm/v/qing-keyed-array.svg?style=flat-square)](https://npmjs.com/package/qing-keyed-array)
 [![Node.js Version](http://img.shields.io/node/v/qing-keyed-array.svg?style=flat-square)](https://nodejs.org/en/)
 
-TypeScript array + map.
+Keyed, and observable array.
 
 ## Installation
 
 ```sh
-yarn add qing-keyed-array
+npm add qing-keyed-array
 ```
 
 ## Usage
@@ -17,8 +17,8 @@ yarn add qing-keyed-array
 ```ts
 import KeyedArray from 'qing-keyed-array';
 
-// Event info for `onArrayChanged`.
-export interface ArrayChangedEvent<K> {
+// Contains information about a change in immutable mode.
+export interface ChangeInfo<K> {
   // Number of changed keys.
   numberOfChanges: number;
   // Updated keys.
@@ -27,10 +27,12 @@ export interface ArrayChangedEvent<K> {
   added?: K[];
   // Removed keys.
   removed?: K[];
+  // An extra piece of data associated with this change.
+  tag?: unknown;
 }
 
-class KeyedArray<K, T> {
-  // Creates an instance of `KeyedArray`.
+class KeyedObservableArray<K, T> {
+  // Creates an instance of `KeyedObservableArray`.
   // `immutable` if `this.array` will be changed in a immutable way.
   // `keyFn` function to get the key from an array element.
   constructor(immutable: boolean, keyFn: (item: T) => K);
@@ -39,9 +41,13 @@ class KeyedArray<K, T> {
   readonly immutable: boolean;
 
   // Fires when the internal array changes in immutable mode.
-  onArrayChanged: (sender: this, e: ArrayChangedEvent<K>) => void;
+  changed?: (sender: this, e: ChangeInfo<K>) => void;
 
-  // Gets the number of elements in this container.
+  // An extra piece of data associated with this change.
+  // It gets reset every time `changed` fires.
+  tag?: unknown;
+
+  // Gets the number of elements.
   get count(): number;
 
   // Gets the internal array.

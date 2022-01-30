@@ -6,8 +6,8 @@ import {
   pureArraySet,
 } from 'f-array.splice';
 
-// Event info for `onArrayChanged`.
-export interface ArrayChangedEvent<K> {
+// Contains information about a change in immutable mode.
+export interface ChangeInfo<K> {
   // Number of changed keys.
   numberOfChanges: number;
   // Updated keys.
@@ -16,16 +16,21 @@ export interface ArrayChangedEvent<K> {
   added?: K[];
   // Removed keys.
   removed?: K[];
+  // An extra piece of data associated with this change.
+  tag?: unknown;
 }
 
-export default class KeyedArray<K, T> {
+export class KeyedObservableArray<K, T> {
   #array: T[] = [];
   #map = new Map<K, T>();
   #keyFn: (item: T) => K;
 
   // Fires when the internal array changes, immutable mode only.
-  // eslint-disable-next-line class-methods-use-this
-  onArrayChanged: (sender: this, e: ArrayChangedEvent<K>) => void = () => {};
+  changed?: (sender: this, e: ChangeInfo<K>) => void;
+
+  // An extra piece of data associated with this change.
+  // It gets reset every time `changed` fires.
+  tag?: unknown;
 
   get count(): number {
     return this.#array.length;
@@ -47,7 +52,7 @@ export default class KeyedArray<K, T> {
     const filtered = this.addItemsToMap(items);
     if (this.immutable) {
       this.#array = [...this.#array, ...filtered];
-      this.onArrayChanged(this, {
+      this.onArrayChanged({
         numberOfChanges: filtered.length,
         added: filtered.map((it) => this.#keyFn(it)),
       });
@@ -61,7 +66,7 @@ export default class KeyedArray<K, T> {
     const filtered = this.addItemsToMap(items);
     if (this.immutable) {
       this.#array = pureArrayInsertAt(this.#array, index, ...filtered) as T[];
-      this.onArrayChanged(this, {
+      this.onArrayChanged({
         numberOfChanges: filtered.length,
         added: filtered.map((it) => this.#keyFn(it)),
       });
@@ -105,7 +110,7 @@ export default class KeyedArray<K, T> {
     this.#map.set(key, newItem);
     if (this.immutable) {
       this.#array = pureArraySet(this.#array, index, newItem) as T[];
-      this.onArrayChanged(this, { numberOfChanges: 0, updated: [key] });
+      this.onArrayChanged({ numberOfChanges: 0, updated: [key] });
     } else {
       this.#array[index] = newItem;
     }
@@ -115,7 +120,7 @@ export default class KeyedArray<K, T> {
     this.#map.delete(key);
     if (this.immutable) {
       this.#array = pureArrayRemoveAt(this.#array, index) as T[];
-      this.onArrayChanged(this, { numberOfChanges: -1, removed: [key] });
+      this.onArrayChanged({ numberOfChanges: -1, removed: [key] });
     } else {
       arrayRemoveAt(this.#array, index);
     }
@@ -130,4 +135,14 @@ export default class KeyedArray<K, T> {
     filtered.forEach((it) => this.#map.set(this.#keyFn(it), it));
     return filtered;
   }
+
+  protected onArrayChanged(e: ChangeInfo<K>) {
+    if (this.tag !== undefined) {
+      e.tag = this.tag;
+    }
+    this.tag = undefined;
+    this.changed?.(this, e);
+  }
 }
+
+export default KeyedObservableArray;
