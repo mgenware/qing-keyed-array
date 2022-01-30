@@ -4,7 +4,7 @@
 [![npm version](https://img.shields.io/npm/v/qing-keyed-array.svg?style=flat-square)](https://npmjs.com/package/qing-keyed-array)
 [![Node.js Version](http://img.shields.io/node/v/qing-keyed-array.svg?style=flat-square)](https://nodejs.org/en/)
 
-Keyed, and observable array.
+Keyed observable array.
 
 ## Installation
 

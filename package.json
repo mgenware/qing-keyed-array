@@ -1,7 +1,7 @@
 {
   "name": "qing-keyed-array",
   "version": "1.0.1",
-  "description": "TypeScript array + map",
+  "description": "Keyed observable array",
   "type": "module",
   "exports": "./dist/main.js",
   "types": "./dist/main.d.ts",
