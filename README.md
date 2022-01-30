@@ -15,10 +15,12 @@ npm add qing-keyed-array
 ## Usage
 
 ```ts
-import KeyedArray from 'qing-keyed-array';
+import KeyedObservableArray from 'qing-keyed-array';
 
 // Contains information about a change in immutable mode.
 export interface ChangeInfo<K> {
+  // The index associated with the change.
+  index: number;
   // Number of changed keys.
   numberOfChanges: number;
   // Updated keys.

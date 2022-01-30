@@ -10,6 +10,8 @@ import {
 export interface ChangeInfo<K> {
   // Number of changed keys.
   numberOfChanges: number;
+  // The index associated with the change.
+  index: number;
   // Updated keys.
   updated?: K[];
   // Added keys.
@@ -54,6 +56,7 @@ export class KeyedObservableArray<K, T> {
       this.#array = [...this.#array, ...filtered];
       this.onArrayChanged({
         numberOfChanges: filtered.length,
+        index: this.count,
         added: filtered.map((it) => this.#keyFn(it)),
       });
     } else {
@@ -68,6 +71,7 @@ export class KeyedObservableArray<K, T> {
       this.#array = pureArrayInsertAt(this.#array, index, ...filtered) as T[];
       this.onArrayChanged({
         numberOfChanges: filtered.length,
+        index,
         added: filtered.map((it) => this.#keyFn(it)),
       });
     } else {
@@ -110,7 +114,7 @@ export class KeyedObservableArray<K, T> {
     this.#map.set(key, newItem);
     if (this.immutable) {
       this.#array = pureArraySet(this.#array, index, newItem) as T[];
-      this.onArrayChanged({ numberOfChanges: 0, updated: [key] });
+      this.onArrayChanged({ numberOfChanges: 0, index, updated: [key] });
     } else {
       this.#array[index] = newItem;
     }
@@ -120,7 +124,7 @@ export class KeyedObservableArray<K, T> {
     this.#map.delete(key);
     if (this.immutable) {
       this.#array = pureArrayRemoveAt(this.#array, index) as T[];
-      this.onArrayChanged({ numberOfChanges: -1, removed: [key] });
+      this.onArrayChanged({ numberOfChanges: -1, index, removed: [key] });
     } else {
       arrayRemoveAt(this.#array, index);
     }

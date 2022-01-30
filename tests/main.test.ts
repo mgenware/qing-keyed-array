@@ -16,7 +16,7 @@ it('Immutable', () => {
   const ka = getKA(true);
   assert.strictEqual(ka.immutable, true);
 
-  let e: ChangeInfo<number> = { numberOfChanges: 0 };
+  let e: ChangeInfo<number> | undefined;
   ka.changed = (_, c) => (e = c);
 
   // Push
@@ -26,7 +26,7 @@ it('Immutable', () => {
   let after = ka.array;
   assert.ok(before !== after);
   assert.strictEqual(ka.tag, undefined);
-  assert.deepStrictEqual(e, { numberOfChanges: 1, added: [-1], tag: 'push' });
+  assert.deepStrictEqual(e, { numberOfChanges: 1, added: [-1], tag: 'push', index: 2 });
   assert.deepStrictEqual(ka.array, [
     { id: 1, name: '1' },
     { id: -1, name: '-1' },
@@ -47,7 +47,7 @@ it('Immutable', () => {
   assert.ok(before !== after);
   assert.strictEqual(ka.tag, undefined);
   // Key of the item at index 0 is 1.
-  assert.deepStrictEqual(e, { numberOfChanges: -1, removed: [1], tag: 'del' });
+  assert.deepStrictEqual(e, { numberOfChanges: -1, removed: [1], tag: 'del', index: 0 });
   assert.deepStrictEqual(ka.array, [{ id: -1, name: '-1' }]);
   assert.deepStrictEqual(ka.map, new Map<number, Item>([[-1, { id: -1, name: '-1' }]]));
 
@@ -58,7 +58,7 @@ it('Immutable', () => {
   after = ka.array;
   assert.ok(before !== after);
   assert.strictEqual(ka.tag, undefined);
-  assert.deepStrictEqual(e, { numberOfChanges: 1, added: [2], tag: 'ins' });
+  assert.deepStrictEqual(e, { numberOfChanges: 1, added: [2], tag: 'ins', index: 1 });
   assert.deepStrictEqual(ka.array, [
     { id: -1, name: '-1' },
     { id: 2, name: '2' },
@@ -78,7 +78,7 @@ it('Immutable', () => {
   after = ka.array;
   assert.ok(before !== after);
   assert.strictEqual(ka.tag, undefined);
-  assert.deepStrictEqual(e, { numberOfChanges: -1, removed: [2], tag: 'delByKey' });
+  assert.deepStrictEqual(e, { numberOfChanges: -1, removed: [2], tag: 'delByKey', index: 1 });
   assert.deepStrictEqual(ka.array, [{ id: -1, name: '-1' }]);
   assert.deepStrictEqual(ka.map, new Map<number, Item>([[-1, { id: -1, name: '-1' }]]));
 
@@ -89,7 +89,7 @@ it('Immutable', () => {
   after = ka.array;
   assert.ok(before !== after);
   assert.strictEqual(ka.tag, undefined);
-  assert.deepStrictEqual(e, { numberOfChanges: 0, updated: [-1], tag: 'upd' });
+  assert.deepStrictEqual(e, { numberOfChanges: 0, updated: [-1], tag: 'upd', index: 0 });
   assert.deepStrictEqual(ka.array, [{ id: -1, name: '-1 updated' }]);
   assert.deepStrictEqual(ka.map, new Map<number, Item>([[-1, { id: -1, name: '-1 updated' }]]));
 });
