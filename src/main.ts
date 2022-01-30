@@ -120,6 +120,10 @@ export class KeyedObservableArray<K, T> {
     }
   }
 
+  containsKey(key: K): boolean {
+    return this.#map.has(key);
+  }
+
   private deleteInternal(key: K, index: number) {
     this.#map.delete(key);
     if (this.immutable) {
@@ -128,10 +132,6 @@ export class KeyedObservableArray<K, T> {
     } else {
       arrayRemoveAt(this.#array, index);
     }
-  }
-
-  containsKey(key: K): boolean {
-    return this.#map.has(key);
   }
 
   private addItemsToMap(items: T[]): T[] {
