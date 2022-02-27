@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 import {
   arrayInsertAt,
   arrayRemoveAt,
@@ -25,9 +26,9 @@ export interface ChangeInfo<K> {
 }
 
 export class KeyedObservableArray<K, T> {
-  #array: T[] = [];
-  #map = new Map<K, T>();
-  #keyFn: (item: T) => K;
+  private _array: T[] = [];
+  private _map = new Map<K, T>();
+  private _keyFn: (item: T) => K;
 
   // Fires when the internal array changes, immutable mode only.
   changed?: (sender: this, e: ChangeInfo<K>) => void;
@@ -37,33 +38,33 @@ export class KeyedObservableArray<K, T> {
   tag?: unknown;
 
   get count(): number {
-    return this.#array.length;
+    return this._array.length;
   }
 
   get array(): ReadonlyArray<T> {
-    return this.#array;
+    return this._array;
   }
 
   get map(): Readonly<Map<K, T>> {
-    return this.#map;
+    return this._map;
   }
 
   constructor(public readonly immutable: boolean, keyFn: (item: T) => K) {
-    this.#keyFn = keyFn;
+    this._keyFn = keyFn;
   }
 
   push(...items: T[]): number {
     const filtered = this.addItemsToMap(items);
     if (this.immutable) {
-      this.#array = [...this.#array, ...filtered];
+      this._array = [...this._array, ...filtered];
       this.onArrayChanged({
         numberOfChanges: filtered.length,
         countDelta: filtered.length,
         index: this.count,
-        added: filtered.map((it) => this.#keyFn(it)),
+        added: filtered.map((it) => this._keyFn(it)),
       });
     } else {
-      this.#array.push(...filtered);
+      this._array.push(...filtered);
     }
     return filtered.length;
   }
@@ -71,15 +72,15 @@ export class KeyedObservableArray<K, T> {
   insert(index: number, ...items: T[]): number {
     const filtered = this.addItemsToMap(items);
     if (this.immutable) {
-      this.#array = pureArrayInsertAt(this.#array, index, ...filtered) as T[];
+      this._array = pureArrayInsertAt(this._array, index, ...filtered) as T[];
       this.onArrayChanged({
         numberOfChanges: filtered.length,
         countDelta: filtered.length,
         index,
-        added: filtered.map((it) => this.#keyFn(it)),
+        added: filtered.map((it) => this._keyFn(it)),
       });
     } else {
-      arrayInsertAt(this.#array, index, ...filtered);
+      arrayInsertAt(this._array, index, ...filtered);
     }
     return filtered.length;
   }
@@ -89,18 +90,18 @@ export class KeyedObservableArray<K, T> {
       return false;
     }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const item = this.#array[index]!;
-    const key = this.#keyFn(item);
+    const item = this._array[index]!;
+    const key = this._keyFn(item);
     this.deleteInternal(key, index);
     return true;
   }
 
   deleteByKey(key: K): boolean {
-    const item = this.#map.get(key);
+    const item = this._map.get(key);
     if (item === undefined) {
       return false;
     }
-    const index = this.#array.indexOf(item);
+    const index = this._array.indexOf(item);
     if (index < 0) {
       return false;
     }
@@ -109,42 +110,42 @@ export class KeyedObservableArray<K, T> {
   }
 
   update(newItem: T): boolean {
-    const key = this.#keyFn(newItem);
-    const item = this.#map.get(key);
+    const key = this._keyFn(newItem);
+    const item = this._map.get(key);
     if (item === undefined) {
       return false;
     }
-    const index = this.#array.indexOf(item);
+    const index = this._array.indexOf(item);
     if (index < 0) {
       return false;
     }
-    this.#map.set(key, newItem);
+    this._map.set(key, newItem);
     if (this.immutable) {
-      this.#array = pureArraySet(this.#array, index, newItem) as T[];
+      this._array = pureArraySet(this._array, index, newItem) as T[];
       this.onArrayChanged({ numberOfChanges: 1, countDelta: 0, index, updated: [key] });
     } else {
-      this.#array[index] = newItem;
+      this._array[index] = newItem;
     }
     return true;
   }
 
   containsKey(key: K): boolean {
-    return this.#map.has(key);
+    return this._map.has(key);
   }
 
   private deleteInternal(key: K, index: number) {
-    this.#map.delete(key);
+    this._map.delete(key);
     if (this.immutable) {
-      this.#array = pureArrayRemoveAt(this.#array, index) as T[];
+      this._array = pureArrayRemoveAt(this._array, index) as T[];
       this.onArrayChanged({ numberOfChanges: 1, countDelta: -1, index, removed: [key] });
     } else {
-      arrayRemoveAt(this.#array, index);
+      arrayRemoveAt(this._array, index);
     }
   }
 
   private addItemsToMap(items: T[]): T[] {
-    const filtered = items.filter((it) => !this.containsKey(this.#keyFn(it)));
-    filtered.forEach((it) => this.#map.set(this.#keyFn(it), it));
+    const filtered = items.filter((it) => !this.containsKey(this._keyFn(it)));
+    filtered.forEach((it) => this._map.set(this._keyFn(it), it));
     return filtered;
   }
 
