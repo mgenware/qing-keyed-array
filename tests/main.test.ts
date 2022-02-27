@@ -20,6 +20,13 @@ function getFalsyValueKA(immutable: boolean) {
   return ka;
 }
 
+function testKAContent<K, T>(ka: KeyedObservableArray<K, T>, expected: T[], keyFn: (item: T) => K) {
+  const keys = expected.map((el) => keyFn(el));
+  assert.deepStrictEqual([...ka.map.keys()].sort(), keys.sort());
+  assert.deepStrictEqual([...ka.map.values()], expected);
+  assert.deepStrictEqual(ka.array, expected);
+}
+
 it('Immutable', () => {
   const ka = getKA(true);
   assert.strictEqual(ka.immutable, true);
@@ -41,16 +48,13 @@ it('Immutable', () => {
     tag: 'push',
     index: 2,
   });
-  assert.deepStrictEqual(ka.array, [
-    { id: 1, name: '1' },
-    { id: -1, name: '-1' },
-  ]);
-  assert.deepStrictEqual(
-    ka.map,
-    new Map<number, Item>([
-      [1, { id: 1, name: '1' }],
-      [-1, { id: -1, name: '-1' }],
-    ]),
+  testKAContent(
+    ka,
+    [
+      { id: 1, name: '1' },
+      { id: -1, name: '-1' },
+    ],
+    (el) => el.id,
   );
 
   // Delete by index
@@ -68,8 +72,7 @@ it('Immutable', () => {
     tag: 'del',
     index: 0,
   });
-  assert.deepStrictEqual(ka.array, [{ id: -1, name: '-1' }]);
-  assert.deepStrictEqual(ka.map, new Map<number, Item>([[-1, { id: -1, name: '-1' }]]));
+  testKAContent(ka, [{ id: -1, name: '-1' }], (el) => el.id);
 
   // Insert
   before = ka.array;
@@ -85,16 +88,13 @@ it('Immutable', () => {
     tag: 'ins',
     index: 1,
   });
-  assert.deepStrictEqual(ka.array, [
-    { id: -1, name: '-1' },
-    { id: 2, name: '2' },
-  ]);
-  assert.deepStrictEqual(
-    ka.map,
-    new Map<number, Item>([
-      [-1, { id: -1, name: '-1' }],
-      [2, { id: 2, name: '2' }],
-    ]),
+  testKAContent(
+    ka,
+    [
+      { id: -1, name: '-1' },
+      { id: 2, name: '2' },
+    ],
+    (el) => el.id,
   );
 
   // Delete by key
@@ -111,8 +111,7 @@ it('Immutable', () => {
     tag: 'delByKey',
     index: 1,
   });
-  assert.deepStrictEqual(ka.array, [{ id: -1, name: '-1' }]);
-  assert.deepStrictEqual(ka.map, new Map<number, Item>([[-1, { id: -1, name: '-1' }]]));
+  testKAContent(ka, [{ id: -1, name: '-1' }], (el) => el.id);
 
   // Update by key
   before = ka.array;
@@ -128,8 +127,7 @@ it('Immutable', () => {
     tag: 'upd',
     index: 0,
   });
-  assert.deepStrictEqual(ka.array, [{ id: -1, name: '-1 updated' }]);
-  assert.deepStrictEqual(ka.map, new Map<number, Item>([[-1, { id: -1, name: '-1 updated' }]]));
+  testKAContent(ka, [{ id: -1, name: '-1 updated' }], (el) => el.id);
 });
 
 it('Mutable', () => {
@@ -141,16 +139,13 @@ it('Mutable', () => {
   ka.push({ id: -1, name: '-1' }, { id: 1, name: '1' });
   let after = ka.array;
   assert.ok(before === after);
-  assert.deepStrictEqual(ka.array, [
-    { id: 1, name: '1' },
-    { id: -1, name: '-1' },
-  ]);
-  assert.deepStrictEqual(
-    ka.map,
-    new Map<number, Item>([
-      [1, { id: 1, name: '1' }],
-      [-1, { id: -1, name: '-1' }],
-    ]),
+  testKAContent(
+    ka,
+    [
+      { id: 1, name: '1' },
+      { id: -1, name: '-1' },
+    ],
+    (el) => el.id,
   );
 
   // Delete by index
@@ -158,24 +153,20 @@ it('Mutable', () => {
   ka.deleteByIndex(0);
   after = ka.array;
   assert.ok(before === after);
-  assert.deepStrictEqual(ka.array, [{ id: -1, name: '-1' }]);
-  assert.deepStrictEqual(ka.map, new Map<number, Item>([[-1, { id: -1, name: '-1' }]]));
+  testKAContent(ka, [{ id: -1, name: '-1' }], (el) => el.id);
 
   // Insert
   before = ka.array;
   ka.insert(1, { id: 2, name: '2' }, { id: -1, name: '-1' });
   after = ka.array;
   assert.ok(before === after);
-  assert.deepStrictEqual(ka.array, [
-    { id: -1, name: '-1' },
-    { id: 2, name: '2' },
-  ]);
-  assert.deepStrictEqual(
-    ka.map,
-    new Map<number, Item>([
-      [-1, { id: -1, name: '-1' }],
-      [2, { id: 2, name: '2' }],
-    ]),
+  testKAContent(
+    ka,
+    [
+      { id: -1, name: '-1' },
+      { id: 2, name: '2' },
+    ],
+    (el) => el.id,
   );
 
   // Delete by key
@@ -183,16 +174,14 @@ it('Mutable', () => {
   ka.deleteByKey(2);
   after = ka.array;
   assert.ok(before === after);
-  assert.deepStrictEqual(ka.array, [{ id: -1, name: '-1' }]);
-  assert.deepStrictEqual(ka.map, new Map<number, Item>([[-1, { id: -1, name: '-1' }]]));
+  testKAContent(ka, [{ id: -1, name: '-1' }], (el) => el.id);
 
   // Update by key
   before = ka.array;
   ka.update({ id: -1, name: '-1 updated' });
   after = ka.array;
   assert.ok(before === after);
-  assert.deepStrictEqual(ka.array, [{ id: -1, name: '-1 updated' }]);
-  assert.deepStrictEqual(ka.map, new Map<number, Item>([[-1, { id: -1, name: '-1 updated' }]]));
+  testKAContent(ka, [{ id: -1, name: '-1 updated' }], (el) => el.id);
 });
 
 it('changed event', () => {
@@ -218,58 +207,58 @@ it('Delete by index (immutable)', () => {
   const ka = getFalsyValueKA(true);
 
   assert.ok(ka.deleteByIndex(4));
-  assert.deepEqual(ka.array, [0, 1, 2, 3]);
+  testKAContent(ka, [0, 1, 2, 3], (el) => el);
 
   assert.strictEqual(ka.deleteByIndex(4), false);
-  assert.deepEqual(ka.array, [0, 1, 2, 3]);
+  testKAContent(ka, [0, 1, 2, 3], (el) => el);
 });
 
 it('Delete by index (mutable)', () => {
   const ka = getFalsyValueKA(false);
 
   assert.ok(ka.deleteByIndex(4));
-  assert.deepEqual(ka.array, [0, 1, 2, 3]);
+  testKAContent(ka, [0, 1, 2, 3], (el) => el);
 
   assert.strictEqual(ka.deleteByIndex(4), false);
-  assert.deepEqual(ka.array, [0, 1, 2, 3]);
+  testKAContent(ka, [0, 1, 2, 3], (el) => el);
 });
 
 it('Delete by key (immutable)', () => {
   const ka = getFalsyValueKA(true);
 
   assert.ok(ka.deleteByKey(4));
-  assert.deepEqual(ka.array, [0, 1, 2, 3]);
+  testKAContent(ka, [0, 1, 2, 3], (el) => el);
 
   assert.strictEqual(ka.deleteByKey(4), false);
-  assert.deepEqual(ka.array, [0, 1, 2, 3]);
+  testKAContent(ka, [0, 1, 2, 3], (el) => el);
 });
 
 it('Delete by key (mutable)', () => {
   const ka = getFalsyValueKA(false);
 
   assert.ok(ka.deleteByKey(4));
-  assert.deepEqual(ka.array, [0, 1, 2, 3]);
+  testKAContent(ka, [0, 1, 2, 3], (el) => el);
 
   assert.strictEqual(ka.deleteByKey(4), false);
-  assert.deepEqual(ka.array, [0, 1, 2, 3]);
+  testKAContent(ka, [0, 1, 2, 3], (el) => el);
 });
 
 it('Update (immutable)', () => {
   const ka = getFalsyValueKA(true);
 
   assert.ok(ka.update(4));
-  assert.deepEqual(ka.array, [0, 1, 2, 3, 4]);
+  testKAContent(ka, [0, 1, 2, 3, 4], (el) => el);
 
   assert.strictEqual(ka.update(5), false);
-  assert.deepEqual(ka.array, [0, 1, 2, 3, 4]);
+  testKAContent(ka, [0, 1, 2, 3, 4], (el) => el);
 });
 
 it('Update (mutable)', () => {
   const ka = getFalsyValueKA(false);
 
   assert.ok(ka.update(4));
-  assert.deepEqual(ka.array, [0, 1, 2, 3, 4]);
+  testKAContent(ka, [0, 1, 2, 3, 4], (el) => el);
 
   assert.strictEqual(ka.update(5), false);
-  assert.deepEqual(ka.array, [0, 1, 2, 3, 4]);
+  testKAContent(ka, [0, 1, 2, 3, 4], (el) => el);
 });
