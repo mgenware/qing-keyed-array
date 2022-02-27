@@ -12,6 +12,14 @@ function getKA(immutable: boolean) {
   return ka;
 }
 
+function getFalsyValueKA(immutable: boolean) {
+  const ka = new KeyedObservableArray<number, number>(immutable, (it) => it);
+  for (let i = 0; i < 5; i++) {
+    ka.push(i);
+  }
+  return ka;
+}
+
 it('Immutable', () => {
   const ka = getKA(true);
   assert.strictEqual(ka.immutable, true);
@@ -204,4 +212,64 @@ it('changed event', () => {
   // Insert
   ka.insert(1, { id: 2, name: '2' });
   assert.strictEqual(counter, 3);
+});
+
+it('Delete by index (immutable)', () => {
+  const ka = getFalsyValueKA(true);
+
+  assert.ok(ka.deleteByIndex(4));
+  assert.deepEqual(ka.array, [0, 1, 2, 3]);
+
+  assert.strictEqual(ka.deleteByIndex(4), false);
+  assert.deepEqual(ka.array, [0, 1, 2, 3]);
+});
+
+it('Delete by index (mutable)', () => {
+  const ka = getFalsyValueKA(false);
+
+  assert.ok(ka.deleteByIndex(4));
+  assert.deepEqual(ka.array, [0, 1, 2, 3]);
+
+  assert.strictEqual(ka.deleteByIndex(4), false);
+  assert.deepEqual(ka.array, [0, 1, 2, 3]);
+});
+
+it('Delete by key (immutable)', () => {
+  const ka = getFalsyValueKA(true);
+
+  assert.ok(ka.deleteByKey(4));
+  assert.deepEqual(ka.array, [0, 1, 2, 3]);
+
+  assert.strictEqual(ka.deleteByKey(4), false);
+  assert.deepEqual(ka.array, [0, 1, 2, 3]);
+});
+
+it('Delete by key (mutable)', () => {
+  const ka = getFalsyValueKA(false);
+
+  assert.ok(ka.deleteByKey(4));
+  assert.deepEqual(ka.array, [0, 1, 2, 3]);
+
+  assert.strictEqual(ka.deleteByKey(4), false);
+  assert.deepEqual(ka.array, [0, 1, 2, 3]);
+});
+
+it('Update (immutable)', () => {
+  const ka = getFalsyValueKA(true);
+
+  assert.ok(ka.update(4));
+  assert.deepEqual(ka.array, [0, 1, 2, 3, 4]);
+
+  assert.strictEqual(ka.update(5), false);
+  assert.deepEqual(ka.array, [0, 1, 2, 3, 4]);
+});
+
+it('Update (mutable)', () => {
+  const ka = getFalsyValueKA(false);
+
+  assert.ok(ka.update(4));
+  assert.deepEqual(ka.array, [0, 1, 2, 3, 4]);
+
+  assert.strictEqual(ka.update(5), false);
+  assert.deepEqual(ka.array, [0, 1, 2, 3, 4]);
 });

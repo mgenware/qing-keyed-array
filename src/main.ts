@@ -84,36 +84,39 @@ export class KeyedObservableArray<K, T> {
     return filtered.length;
   }
 
-  deleteByIndex(index: number) {
-    const item = this.#array[index];
-    if (!item) {
-      return;
+  deleteByIndex(index: number): boolean {
+    if (index < 0 || index >= this.count) {
+      return false;
     }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const item = this.#array[index]!;
     const key = this.#keyFn(item);
     this.deleteInternal(key, index);
+    return true;
   }
 
-  deleteByKey(key: K) {
+  deleteByKey(key: K): boolean {
     const item = this.#map.get(key);
-    if (!item) {
-      return;
+    if (item === undefined) {
+      return false;
     }
     const index = this.#array.indexOf(item);
     if (index < 0) {
-      return;
+      return false;
     }
     this.deleteInternal(key, index);
+    return true;
   }
 
-  update(newItem: T) {
+  update(newItem: T): boolean {
     const key = this.#keyFn(newItem);
     const item = this.#map.get(key);
-    if (!item) {
-      return;
+    if (item === undefined) {
+      return false;
     }
     const index = this.#array.indexOf(item);
     if (index < 0) {
-      return;
+      return false;
     }
     this.#map.set(key, newItem);
     if (this.immutable) {
@@ -122,6 +125,7 @@ export class KeyedObservableArray<K, T> {
     } else {
       this.#array[index] = newItem;
     }
+    return true;
   }
 
   containsKey(key: K): boolean {
