@@ -1,6 +1,6 @@
 {
   "name": "qing-keyed-array",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "description": "Keyed observable array",
   "type": "module",
   "exports": "./dist/main.js",
