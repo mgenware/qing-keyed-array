@@ -109,7 +109,7 @@ export class KeyedObservableArray<K, T> {
     return true;
   }
 
-  update(newItem: T): boolean {
+  update(newItem: T, silent?: boolean): boolean {
     const key = this._keyFn(newItem);
     const item = this._map.get(key);
     if (item === undefined) {
@@ -122,7 +122,9 @@ export class KeyedObservableArray<K, T> {
     this._map.set(key, newItem);
     if (this.immutable) {
       this._array = pureArraySet(this._array, index, newItem) as T[];
-      this.onArrayChanged({ numberOfChanges: 1, countDelta: 0, index, updated: [key] });
+      if (!silent) {
+        this.onArrayChanged({ numberOfChanges: 1, countDelta: 0, index, updated: [key] });
+      }
     } else {
       this._array[index] = newItem;
     }

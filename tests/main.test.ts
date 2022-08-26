@@ -201,6 +201,14 @@ it('changed event', () => {
   // Insert
   ka.insert(1, { id: 2, name: '2' });
   assert.strictEqual(counter, 3);
+
+  // Update
+  ka.update({ id: 2, name: 'a' });
+  assert.strictEqual(counter, 4);
+
+  // Update (silent)
+  ka.update({ id: 2, name: 'b' }, true);
+  assert.strictEqual(counter, 4);
 });
 
 it('Delete by index (immutable)', () => {
