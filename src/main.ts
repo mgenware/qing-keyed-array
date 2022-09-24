@@ -135,18 +135,35 @@ export class KeyedObservableArray<K, T> {
     return this._map.has(key);
   }
 
-  sort(compareFn?: (a: T, b: T) => number) {
+  sort(compareFn: (a: T, b: T) => number) {
     if (this.immutable) {
       const cpy = [...this._array];
       cpy.sort(compareFn);
       this._array = cpy;
       this.onArrayChanged({
         numberOfChanges: cpy.length,
-        countDelta: cpy.length,
+        countDelta: 0,
         index: 0,
       });
     } else {
       this._array.sort(compareFn);
+    }
+  }
+
+  reset(items: T[]) {
+    const prevCount = this.count;
+    this._array = items;
+    this._map = new Map<K, T>();
+    for (const item of items) {
+      this._map.set(this._keyFn(item), item);
+    }
+
+    if (this.immutable) {
+      this.onArrayChanged({
+        numberOfChanges: items.length,
+        countDelta: items.length - prevCount,
+        index: 0,
+      });
     }
   }
 

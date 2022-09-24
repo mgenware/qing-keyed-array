@@ -22,8 +22,8 @@ function getFalsyValueKA(immutable: boolean) {
 
 function testKAContent<K, T>(ka: KeyedObservableArray<K, T>, expected: T[], keyFn: (item: T) => K) {
   const keys = expected.map((el) => keyFn(el));
-  assert.deepStrictEqual([...ka.map.keys()].sort(), keys.sort());
-  assert.deepStrictEqual([...ka.map.values()], expected);
+  assert.deepStrictEqual(new Set(ka.map.keys()), new Set(keys));
+  assert.deepStrictEqual(new Set(ka.map.values()), new Set(expected));
   assert.deepStrictEqual(ka.array, expected);
 }
 
@@ -128,6 +128,56 @@ it('Immutable', () => {
     index: 0,
   });
   testKAContent(ka, [{ id: -1, name: '-1 updated' }], (el) => el.id);
+
+  // Reset
+  before = ka.array;
+  ka.tag = 'reset';
+  ka.reset([
+    { id: 1, name: '1' },
+    { id: 3, name: '3' },
+    { id: 2, name: '2' },
+  ]);
+  after = ka.array;
+  assert.ok(before !== after);
+  assert.strictEqual(ka.tag, undefined);
+  assert.deepStrictEqual(e, {
+    numberOfChanges: 3,
+    countDelta: 2,
+    tag: 'reset',
+    index: 0,
+  });
+  testKAContent(
+    ka,
+    [
+      { id: 1, name: '1' },
+      { id: 3, name: '3' },
+      { id: 2, name: '2' },
+    ],
+    (el) => el.id,
+  );
+
+  // Sort
+  before = ka.array;
+  ka.tag = 'sort';
+  ka.sort((a, b) => a.id - b.id);
+  after = ka.array;
+  assert.ok(before !== after);
+  assert.strictEqual(ka.tag, undefined);
+  assert.deepStrictEqual(e, {
+    numberOfChanges: 3,
+    countDelta: 0,
+    tag: 'sort',
+    index: 0,
+  });
+  testKAContent(
+    ka,
+    [
+      { id: 1, name: '1' },
+      { id: 2, name: '2' },
+      { id: 3, name: '3' },
+    ],
+    (el) => el.id,
+  );
 });
 
 it('Mutable', () => {
@@ -182,6 +232,41 @@ it('Mutable', () => {
   after = ka.array;
   assert.ok(before === after);
   testKAContent(ka, [{ id: -1, name: '-1 updated' }], (el) => el.id);
+
+  // Reset
+  before = ka.array;
+  ka.reset([
+    { id: 1, name: '1' },
+    { id: 3, name: '3' },
+    { id: 2, name: '2' },
+  ]);
+  after = ka.array;
+  // This is expected. `reset` moves the original array pointer.
+  assert.ok(before !== after);
+  testKAContent(
+    ka,
+    [
+      { id: 1, name: '1' },
+      { id: 3, name: '3' },
+      { id: 2, name: '2' },
+    ],
+    (el) => el.id,
+  );
+
+  // Sort
+  before = ka.array;
+  ka.sort((a, b) => a.id - b.id);
+  after = ka.array;
+  assert.ok(before === after);
+  testKAContent(
+    ka,
+    [
+      { id: 1, name: '1' },
+      { id: 2, name: '2' },
+      { id: 3, name: '3' },
+    ],
+    (el) => el.id,
+  );
 });
 
 it('changed event', () => {
