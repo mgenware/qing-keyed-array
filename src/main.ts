@@ -56,7 +56,7 @@ export class KeyedObservableArray<K, T> {
     this._keyFn = keyFn;
   }
 
-  push(items: T[], opt?: Options): number {
+  push(items: readonly T[], opt?: Options): number {
     const filtered = this.addItemsToMap(items);
     if (this.immutable) {
       this._array = [...this._array, ...filtered];
@@ -72,7 +72,7 @@ export class KeyedObservableArray<K, T> {
     return filtered.length;
   }
 
-  insert(index: number, items: T[], opt?: Options): number {
+  insert(index: number, items: readonly T[], opt?: Options): number {
     const filtered = this.addItemsToMap(items);
     if (this.immutable) {
       this._array = pureArrayInsertAt(this._array, index, ...filtered) as T[];
@@ -151,9 +151,9 @@ export class KeyedObservableArray<K, T> {
     }
   }
 
-  reset(items: T[], opt?: Options) {
+  reset(items: readonly T[], opt?: Options) {
     const prevCount = this.count;
-    this._array = items;
+    this._array = [...items];
     this._map = new Map<K, T>();
     for (const item of items) {
       this._map.set(this._keyFn(item), item);
@@ -178,7 +178,7 @@ export class KeyedObservableArray<K, T> {
     }
   }
 
-  private addItemsToMap(items: T[]): T[] {
+  private addItemsToMap(items: readonly T[]): T[] {
     const filtered = items.filter((it) => !this.containsKey(this._keyFn(it)));
     filtered.forEach((it) => this._map.set(this._keyFn(it), it));
     return filtered;
