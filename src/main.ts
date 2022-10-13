@@ -21,8 +21,15 @@ export interface ChangeInfo<K> {
   added?: K[];
   // Removed keys.
   removed?: K[];
+  // See `Options.tag`.
+  tag?: unknown;
+}
+
+export interface Options {
   // An extra piece of data associated with this change.
   tag?: unknown;
+  // If true, no change event fires (immutable mode only).
+  silent?: boolean;
 }
 
 export class KeyedObservableArray<K, T> {
@@ -32,10 +39,6 @@ export class KeyedObservableArray<K, T> {
 
   // Fires when the internal array changes, immutable mode only.
   changed?: (sender: this, e: ChangeInfo<K>) => void;
-
-  // An extra piece of data associated with this change.
-  // It gets reset every time `changed` fires.
-  tag?: unknown;
 
   get count(): number {
     return this._array.length;
@@ -53,11 +56,11 @@ export class KeyedObservableArray<K, T> {
     this._keyFn = keyFn;
   }
 
-  push(...items: T[]): number {
+  push(items: T[], opt?: Options): number {
     const filtered = this.addItemsToMap(items);
     if (this.immutable) {
       this._array = [...this._array, ...filtered];
-      this.onArrayChanged({
+      this.onArrayChanged(opt, {
         numberOfChanges: filtered.length,
         countDelta: filtered.length,
         index: this.count,
@@ -69,11 +72,11 @@ export class KeyedObservableArray<K, T> {
     return filtered.length;
   }
 
-  insert(index: number, ...items: T[]): number {
+  insert(index: number, items: T[], opt?: Options): number {
     const filtered = this.addItemsToMap(items);
     if (this.immutable) {
       this._array = pureArrayInsertAt(this._array, index, ...filtered) as T[];
-      this.onArrayChanged({
+      this.onArrayChanged(opt, {
         numberOfChanges: filtered.length,
         countDelta: filtered.length,
         index,
@@ -85,18 +88,18 @@ export class KeyedObservableArray<K, T> {
     return filtered.length;
   }
 
-  deleteByIndex(index: number): boolean {
+  deleteByIndex(index: number, opt?: Options): boolean {
     if (index < 0 || index >= this.count) {
       return false;
     }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const item = this._array[index]!;
     const key = this._keyFn(item);
-    this.deleteInternal(key, index);
+    this.deleteInternal(key, index, opt);
     return true;
   }
 
-  deleteByKey(key: K): boolean {
+  deleteByKey(key: K, opt?: Options): boolean {
     const item = this._map.get(key);
     if (item === undefined) {
       return false;
@@ -105,11 +108,11 @@ export class KeyedObservableArray<K, T> {
     if (index < 0) {
       return false;
     }
-    this.deleteInternal(key, index);
+    this.deleteInternal(key, index, opt);
     return true;
   }
 
-  update(newItem: T, silent?: boolean): boolean {
+  update(newItem: T, opt?: Options): boolean {
     const key = this._keyFn(newItem);
     const item = this._map.get(key);
     if (item === undefined) {
@@ -122,9 +125,7 @@ export class KeyedObservableArray<K, T> {
     this._map.set(key, newItem);
     if (this.immutable) {
       this._array = pureArraySet(this._array, index, newItem) as T[];
-      if (!silent) {
-        this.onArrayChanged({ numberOfChanges: 1, countDelta: 0, index, updated: [key] });
-      }
+      this.onArrayChanged(opt, { numberOfChanges: 1, countDelta: 0, index, updated: [key] });
     } else {
       this._array[index] = newItem;
     }
@@ -135,12 +136,12 @@ export class KeyedObservableArray<K, T> {
     return this._map.has(key);
   }
 
-  sort(compareFn: (a: T, b: T) => number) {
+  sort(compareFn: (a: T, b: T) => number, opt?: Options) {
     if (this.immutable) {
       const cpy = [...this._array];
       cpy.sort(compareFn);
       this._array = cpy;
-      this.onArrayChanged({
+      this.onArrayChanged(opt, {
         numberOfChanges: cpy.length,
         countDelta: 0,
         index: 0,
@@ -150,7 +151,7 @@ export class KeyedObservableArray<K, T> {
     }
   }
 
-  reset(items: T[]) {
+  reset(items: T[], opt?: Options) {
     const prevCount = this.count;
     this._array = items;
     this._map = new Map<K, T>();
@@ -159,7 +160,7 @@ export class KeyedObservableArray<K, T> {
     }
 
     if (this.immutable) {
-      this.onArrayChanged({
+      this.onArrayChanged(opt, {
         numberOfChanges: items.length,
         countDelta: items.length - prevCount,
         index: 0,
@@ -167,11 +168,11 @@ export class KeyedObservableArray<K, T> {
     }
   }
 
-  private deleteInternal(key: K, index: number) {
+  private deleteInternal(key: K, index: number, opt: Options | undefined) {
     this._map.delete(key);
     if (this.immutable) {
       this._array = pureArrayRemoveAt(this._array, index) as T[];
-      this.onArrayChanged({ numberOfChanges: 1, countDelta: -1, index, removed: [key] });
+      this.onArrayChanged(opt, { numberOfChanges: 1, countDelta: -1, index, removed: [key] });
     } else {
       arrayRemoveAt(this._array, index);
     }
@@ -183,12 +184,11 @@ export class KeyedObservableArray<K, T> {
     return filtered;
   }
 
-  protected onArrayChanged(e: ChangeInfo<K>) {
-    if (this.tag !== undefined) {
-      e.tag = this.tag;
+  protected onArrayChanged(opt: Options | undefined, e: ChangeInfo<K>) {
+    if (!opt?.silent) {
+      e.tag = opt?.tag;
+      this.changed?.(this, e);
     }
-    this.tag = undefined;
-    this.changed?.(this, e);
   }
 }
 

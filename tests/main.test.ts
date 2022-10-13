@@ -8,14 +8,14 @@ interface Item {
 
 function getKA(immutable: boolean) {
   const ka = new KeyedObservableArray<number, Item>(immutable, (it) => it.id);
-  ka.push({ id: 1, name: '1' });
+  ka.push([{ id: 1, name: '1' }]);
   return ka;
 }
 
 function getFalsyValueKA(immutable: boolean) {
   const ka = new KeyedObservableArray<number, number>(immutable, (it) => it);
   for (let i = 0; i < 5; i++) {
-    ka.push(i);
+    ka.push([i]);
   }
   return ka;
 }
@@ -36,11 +36,15 @@ it('Immutable', () => {
 
   // Push
   let before = ka.array;
-  ka.tag = 'push';
-  ka.push({ id: -1, name: '-1' }, { id: 1, name: '1' });
+  ka.push(
+    [
+      { id: -1, name: '-1' },
+      { id: 1, name: '1' },
+    ],
+    { tag: 'push' },
+  );
   let after = ka.array;
   assert.ok(before !== after);
-  assert.strictEqual(ka.tag, undefined);
   assert.deepStrictEqual(e, {
     numberOfChanges: 1,
     countDelta: 1,
@@ -59,11 +63,9 @@ it('Immutable', () => {
 
   // Delete by index
   before = ka.array;
-  ka.tag = 'del';
-  ka.deleteByIndex(0);
+  ka.deleteByIndex(0, { tag: 'del' });
   after = ka.array;
   assert.ok(before !== after);
-  assert.strictEqual(ka.tag, undefined);
   // Key of the item at index 0 is 1.
   assert.deepStrictEqual(e, {
     numberOfChanges: 1,
@@ -76,11 +78,16 @@ it('Immutable', () => {
 
   // Insert
   before = ka.array;
-  ka.tag = 'ins';
-  ka.insert(1, { id: 2, name: '2' }, { id: -1, name: '-1' });
+  ka.insert(
+    1,
+    [
+      { id: 2, name: '2' },
+      { id: -1, name: '-1' },
+    ],
+    { tag: 'ins' },
+  );
   after = ka.array;
   assert.ok(before !== after);
-  assert.strictEqual(ka.tag, undefined);
   assert.deepStrictEqual(e, {
     numberOfChanges: 1,
     countDelta: 1,
@@ -99,11 +106,9 @@ it('Immutable', () => {
 
   // Delete by key
   before = ka.array;
-  ka.tag = 'delByKey';
-  ka.deleteByKey(2);
+  ka.deleteByKey(2, { tag: 'delByKey' });
   after = ka.array;
   assert.ok(before !== after);
-  assert.strictEqual(ka.tag, undefined);
   assert.deepStrictEqual(e, {
     numberOfChanges: 1,
     countDelta: -1,
@@ -115,11 +120,9 @@ it('Immutable', () => {
 
   // Update by key
   before = ka.array;
-  ka.tag = 'upd';
-  ka.update({ id: -1, name: '-1 updated' });
+  ka.update({ id: -1, name: '-1 updated' }, { tag: 'upd' });
   after = ka.array;
   assert.ok(before !== after);
-  assert.strictEqual(ka.tag, undefined);
   assert.deepStrictEqual(e, {
     numberOfChanges: 1,
     countDelta: 0,
@@ -131,15 +134,16 @@ it('Immutable', () => {
 
   // Reset
   before = ka.array;
-  ka.tag = 'reset';
-  ka.reset([
-    { id: 1, name: '1' },
-    { id: 3, name: '3' },
-    { id: 2, name: '2' },
-  ]);
+  ka.reset(
+    [
+      { id: 1, name: '1' },
+      { id: 3, name: '3' },
+      { id: 2, name: '2' },
+    ],
+    { tag: 'reset' },
+  );
   after = ka.array;
   assert.ok(before !== after);
-  assert.strictEqual(ka.tag, undefined);
   assert.deepStrictEqual(e, {
     numberOfChanges: 3,
     countDelta: 2,
@@ -158,11 +162,9 @@ it('Immutable', () => {
 
   // Sort
   before = ka.array;
-  ka.tag = 'sort';
-  ka.sort((a, b) => a.id - b.id);
+  ka.sort((a, b) => a.id - b.id, { tag: 'sort' });
   after = ka.array;
   assert.ok(before !== after);
-  assert.strictEqual(ka.tag, undefined);
   assert.deepStrictEqual(e, {
     numberOfChanges: 3,
     countDelta: 0,
@@ -186,7 +188,10 @@ it('Mutable', () => {
 
   // Push
   let before = ka.array;
-  ka.push({ id: -1, name: '-1' }, { id: 1, name: '1' });
+  ka.push([
+    { id: -1, name: '-1' },
+    { id: 1, name: '1' },
+  ]);
   let after = ka.array;
   assert.ok(before === after);
   testKAContent(
@@ -207,7 +212,10 @@ it('Mutable', () => {
 
   // Insert
   before = ka.array;
-  ka.insert(1, { id: 2, name: '2' }, { id: -1, name: '-1' });
+  ka.insert(1, [
+    { id: 2, name: '2' },
+    { id: -1, name: '-1' },
+  ]);
   after = ka.array;
   assert.ok(before === after);
   testKAContent(
@@ -276,7 +284,10 @@ it('changed event', () => {
   ka.changed = () => counter++;
 
   // Push
-  ka.push({ id: -1, name: '-1' }, { id: 1, name: '1' });
+  ka.push([
+    { id: -1, name: '-1' },
+    { id: 1, name: '1' },
+  ]);
   assert.strictEqual(counter, 1);
 
   // Remove
@@ -284,7 +295,7 @@ it('changed event', () => {
   assert.strictEqual(counter, 2);
 
   // Insert
-  ka.insert(1, { id: 2, name: '2' });
+  ka.insert(1, [{ id: 2, name: '2' }]);
   assert.strictEqual(counter, 3);
 
   // Update
@@ -292,7 +303,7 @@ it('changed event', () => {
   assert.strictEqual(counter, 4);
 
   // Update (silent)
-  ka.update({ id: 2, name: 'b' }, true);
+  ka.update({ id: 2, name: 'b' }, { silent: true });
   assert.strictEqual(counter, 4);
 });
 
